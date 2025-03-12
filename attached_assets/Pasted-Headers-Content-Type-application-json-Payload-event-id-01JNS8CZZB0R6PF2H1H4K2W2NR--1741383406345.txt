@@ -1,0 +1,100 @@
+Headers
+Content-Type: application/json
+Payload
+{
+  "event_id": "01JNS8CZZB0R6PF2H1H4K2W2NR",
+  "event_type": "form_response",
+  "form_response": {
+    "form_id": "Y3Z308AH",
+    "token": "gxir4ifqkzqukjiegxirm4pzi2e7dftm",
+    "landed_at": "2025-03-07T21:32:27Z",
+    "submitted_at": "2025-03-07T21:32:52Z",
+    "definition": {
+      "id": "Y3Z308AH",
+      "title": "SKD_128_Distress (copy)",
+      "fields": [
+        {
+          "id": "yZzKSDqhImvv",
+          "ref": "4554d318-75da-413e-8e7b-32f318202e17",
+          "type": "number",
+          "title": "Bitte geben Sie Ihre Fallnummer an:",
+          "properties": {}
+        },
+        {
+          "id": "QOBj6UyBErwV",
+          "ref": "f2336cc6-bbfb-426c-a1f9-58716cb80435",
+          "type": "yes_no",
+          "title": "*Spirituelle/religiöse Belange in Bezug auf Gott und/oder Verlust des Glaubens?*",
+          "properties": {}
+        },
+        {
+          "id": "8TmW6ATd2mLM",
+          "ref": "f25358cb-6704-4e7d-b282-376672c69b20",
+          "type": "multiple_choice",
+          "title": "Haben Sie sexuelle Probleme?",
+          "properties": {},
+          "choices": [
+            {
+              "id": "vE60c8Fg8Svf",
+              "ref": "dcfec972-c66c-48c6-aea0-2f49725fe66d",
+              "label": "*Ja*"
+            },
+            {
+              "id": "HRFbQMeU3rvv",
+              "ref": "f3809220-a9bd-4ac4-a2f7-5b0c89f04fd5",
+              "label": "*Nein*"
+            }
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "33kXxDq8xLk3",
+          "ref": "0a5c0272-5175-453c-a455-af17f69fe1a2",
+          "title": "https://skd.helpchat.care/de/user/services",
+          "type": "url_redirect",
+          "properties": {
+            "redirect_url": "https://skd.helpchat.care/de/user/services"
+          }
+        }
+      ]
+    },
+    "answers": [
+      {
+        "type": "number",
+        "number": 233333322,
+        "field": {
+          "id": "yZzKSDqhImvv",
+          "type": "number",
+          "ref": "4554d318-75da-413e-8e7b-32f318202e17"
+        }
+      },
+      {
+        "type": "boolean",
+        "boolean": false,
+        "field": {
+          "id": "QOBj6UyBErwV",
+          "type": "yes_no",
+          "ref": "f2336cc6-bbfb-426c-a1f9-58716cb80435"
+        }
+      },
+      {
+        "type": "choice",
+        "choice": {
+          "id": "HRFbQMeU3rvv",
+          "label": "*Nein*",
+          "ref": "f3809220-a9bd-4ac4-a2f7-5b0c89f04fd5"
+        },
+        "field": {
+          "id": "8TmW6ATd2mLM",
+          "type": "multiple_choice",
+          "ref": "f25358cb-6704-4e7d-b282-376672c69b20"
+        }
+      }
+    ],
+    "ending": {
+      "id": "33kXxDq8xLk3",
+      "ref": "0a5c0272-5175-453c-a455-af17f69fe1a2"
+    }
+  }
+}

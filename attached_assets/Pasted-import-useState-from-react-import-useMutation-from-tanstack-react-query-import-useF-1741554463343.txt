@@ -1,0 +1,170 @@
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AlertCircle, CheckCircle2, Circle, HelpCircle, ListChecks, Text } from "lucide-react";
+import { typeformConfigSchema, type TypeformResponse } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+
+export default function Home() {
+  const [formData, setFormData] = useState<TypeformResponse | null>(null);
+
+  const form = useForm({
+    resolver: zodResolver(typeformConfigSchema),
+    defaultValues: {
+      formId: "",
+      accessToken: "",
+    },
+  });
+
+  const { mutate, isPending, error } = useMutation({
+    mutationFn: async (data: { formId: string; accessToken: string }) => {
+      const res = await apiRequest("POST", "/api/typeform/questions", data);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setFormData(data);
+    },
+  });
+
+  function onSubmit(data: { formId: string; accessToken: string }) {
+    mutate(data);
+  }
+
+  const getQuestionIcon = (type: string) => {
+    switch (type) {
+      case "multiple_choice":
+        return <ListChecks className="h-5 w-5" />;
+      case "short_text":
+        return <Text className="h-5 w-5" />;
+      case "yes_no":
+        return <CheckCircle2 className="h-5 w-5" />;
+      default:
+        return <Circle className="h-5 w-5" />;
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-2xl mx-auto space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">
+              Typeform Questions Viewer
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="formId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Form ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter Typeform form ID" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="accessToken"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Access Token</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter access token"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Loading..." : "Fetch Questions"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error instanceof Error ? error.message : "Failed to fetch questions"}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isPending && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {formData && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{formData.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px] pr-4">
+                <div className="space-y-6">
+                  {formData.fields.map((field) => (
+                    <div key={field.id} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {getQuestionIcon(field.type)}
+                        <h3 className="text-lg font-semibold">{field.title}</h3>
+                      </div>
+                      {field.properties?.description && (
+                        <p className="text-sm text-muted-foreground ml-7">
+                          {field.properties.description}
+                        </p>
+                      )}
+                      {field.properties?.choices && (
+                        <div className="ml-7 space-y-1">
+                          {field.properties.choices.map((choice) => (
+                            <div
+                              key={choice.id}
+                              className="flex items-center gap-2"
+                            >
+                              <Circle className="h-2 w-2" />
+                              <span className="text-sm">{choice.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

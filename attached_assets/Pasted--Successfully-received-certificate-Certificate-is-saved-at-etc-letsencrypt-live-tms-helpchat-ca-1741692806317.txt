@@ -1,0 +1,191 @@
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/tms.helpchat.care/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/tms.helpchat.care/privkey.pem
+This certificate expires on 2025-06-09.
+These files will be updated when the certificate renews.
+Certbot has set up a scheduled task to automatically renew this certificate in the background.
+
+Deploying certificate
+Successfully deployed certificate for tms.helpchat.care to /etc/nginx/sites-enabled/tms.helpchat.care
+Your existing certificate has been successfully renewed, and the new certificate has been installed.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+If you like Certbot, please consider supporting our work by:
+ * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+ * Donating to EFF:                    https://eff.org/donate-le
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ sudo nginx -t
+sudo systemctl restart nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ pm2 lisz
+[PM2][ERROR] Command not found
+
+usage: pm2 [options] <command>
+
+pm2 -h, --help             all available commands and options
+pm2 examples               display pm2 usage examples
+pm2 <command> -h           help on a specific command
+
+Access pm2 files in ~/.pm2
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ pm2 list
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ typeform-webhook   │ fork     │ 22   │ online    │ 0%       │ 51.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ pm2 status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ typeform-webhook   │ fork     │ 37   │ online    │ 0%       │ 48.0mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ git pull origin main
+remote: Enumerating objects: 27, done.
+remote: Counting objects: 100% (27/27), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 23 (delta 14), reused 23 (delta 14), pack-reused 0 (from 0)
+Unpacking objects: 100% (23/23), 111.42 KiB | 504.00 KiB/s, done.
+From github.com:helpchatproject/Umfrage-V1
+ * branch            main       -> FETCH_HEAD
+   8bbd5e6..5394b08  main       -> origin/main
+Updating 8bbd5e6..5394b08
+Fast-forward
+ ...ng-nginx-service-A-high-performance-web-server-and-a-r-1741691567913.txt |   73 +++
+ ...gresql-sudo-systemctl-status-postgresql-Synchronizing--1741692305084.txt |   72 +++
+ attached_assets/image_1741691017775.png                                     |  Bin 0 -> 17897 bytes
+ attached_assets/image_1741691775105.png                                     |  Bin 0 -> 18272 bytes
+ attached_assets/image_1741692060753.png                                     |  Bin 0 -> 37753 bytes
+ attached_assets/image_1741692091961.png                                     |  Bin 0 -> 19076 bytes
+ attached_assets/image_1741692299536.png                                     |  Bin 0 -> 18609 bytes
+ package-lock.json                                                           | 1157 ++++++++++++++++++++++++++++++++++-
+ package.json                                                                |    1 +
+ troubleshooting_guide.md                                                    |  102 +++
+ 10 files changed, 1402 insertions(+), 3 deletions(-)
+ create mode 100644 attached_assets/Pasted--Mar-11-11-00-45-ecs-tms-systemd-1-Starting-nginx-service-A-high-performance-web-server-and-a-r-1741691567913.txt
+ create mode 100644 attached_assets/Pasted-ubuntu-ecs-tms-sudo-systemctl-enable-postgresql-sudo-systemctl-status-postgresql-Synchronizing--1741692305084.txt
+ create mode 100644 attached_assets/image_1741691017775.png
+ create mode 100644 attached_assets/image_1741691775105.png
+ create mode 100644 attached_assets/image_1741692060753.png
+ create mode 100644 attached_assets/image_1741692091961.png
+ create mode 100644 attached_assets/image_1741692299536.png
+ create mode 100644 troubleshooting_guide.md
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ npm install
+
+added 103 packages, and audited 679 packages in 13s
+
+68 packages are looking for funding
+  run `npm fund` for details
+
+6 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ npm run dev
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+/var/www/tms.helpchat.care/server/db.ts:9
+  throw new Error(
+        ^
+
+
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+    at <anonymous> (/var/www/tms.helpchat.care/server/db.ts:9:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+
+Node.js v20.18.3
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ ls
+attached_assets    generated-icon.png     package.json        server                    tsconfig.json
+backup.sql         installation_guide.md  postcss.config.js   shared                    ui-ux-description.md
+client             login-system-template  project_export.zip  tailwind.config.ts        vite.config.ts
+dist               node_modules           public              theme.json
+drizzle.config.ts  package-lock.json      replit.nix          troubleshooting_guide.md
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ cd /var/www/tms.helpchat.care/backend
+npm install
+
+cd /var/www/tms.helpchat.care/frontend
+npm install
+-bash: cd: /var/www/tms.helpchat.care/backend: No such file or directory
+
+up to date, audited 679 packages in 6s
+
+68 packages are looking for funding
+  run `npm fund` for details
+
+6 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+-bash: cd: /var/www/tms.helpchat.care/frontend: No such file or directory
+
+up to date, audited 679 packages in 6s
+
+68 packages are looking for funding
+  run `npm fund` for details
+
+6 moderate severity vulnerabilities
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ nano /var/www/tms.helpchat.care/.env
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ npm run dev
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+/var/www/tms.helpchat.care/server/db.ts:9
+  throw new Error(
+        ^
+
+
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+    at <anonymous> (/var/www/tms.helpchat.care/server/db.ts:9:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+
+Node.js v20.18.3
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ cd /var/www/tms.helpchat.care
+npm run build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+✓ 2205 modules transformed.
+../dist/public/index.html                            2.08 kB │ gzip:   0.77 kB
+../dist/public/assets/index-7RkPJpyc.css            61.87 kB │ gzip:  10.89 kB
+../dist/public/assets/purify.es-D-QPbZEk.js         21.82 kB │ gzip:   8.60 kB
+../dist/public/assets/index.es-CJoFjPy_.js         149.85 kB │ gzip:  51.24 kB
+../dist/public/assets/html2canvas.esm-CBrSDip1.js  201.42 kB │ gzip:  48.03 kB
+../dist/public/assets/index-C-XV-l4Q.js            901.99 kB │ gzip: 281.56 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 40.37s
+
+  dist/index.js  45.2kb
+
+⚡ Done in 32ms

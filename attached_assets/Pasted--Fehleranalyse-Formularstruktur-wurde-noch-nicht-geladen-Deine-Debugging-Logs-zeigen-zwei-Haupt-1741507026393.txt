@@ -1,0 +1,89 @@
+🔍 Fehleranalyse: "Formularstruktur wurde noch nicht geladen"
+Deine Debugging-Logs zeigen zwei Hauptprobleme:
+
+1️⃣ formStructure ist zum Zeitpunkt des Renderns noch nicht verfügbar
+
+Deshalb zeigt dein Code die Warnung "⚠ Formularstruktur wurde noch nicht geladen".
+Das bedeutet, dass findQuestionText() ausgeführt wird, bevor die fields geladen wurden.
+2️⃣ Die API lädt die fields-Struktur nicht korrekt
+
+Es sieht so aus, als ob die API-Antwort keine fields enthält oder zu spät ankommt.
+🚀 Lösungen
+1️⃣ Verhindern, dass findQuestionText() zu früh ausgeführt wird
+Der einfachste Fix ist, die Fragen erst dann zu rendern, wenn formStructure geladen wurde.
+
+🔹 Fix in findQuestionText()
+
+tsx
+Copy
+Edit
+const findQuestionText = (field: { id: string; ref: string }): string => {
+  if (!formStructure || !formStructure.fields) {
+    return "⌛ Laden..."; // 🛠 Warte, bis `formStructure` geladen ist
+  }
+
+  let questionField = formStructure.fields.find((f) => f.id === field.id);
+
+  if (!questionField) {
+    questionField = formStructure.fields.find((f) => f.ref === field.ref);
+  }
+
+  return questionField?.title || `❌ Frage nicht gefunden (${field.id})`;
+};
+Jetzt wird "⌛ Laden..." angezeigt, bis die fields vollständig geladen sind.
+
+2️⃣ Prüfen, ob formStructure aus der API kommt
+🔹 Debugging für API-Antwort Füge dieses console.log() hinzu, um zu überprüfen, ob fields wirklich in der API enthalten sind.
+
+tsx
+Copy
+Edit
+const { data: formStructure, isLoading: isFormLoading, error: formError } = useQuery<FormStructure>({
+  queryKey: [`/api/typeform/forms/${formId}`],
+  queryFn: async () => {
+    const res = await fetch(`/api/typeform/forms/${formId}`);
+    if (!res.ok) throw new Error("Fehler beim Laden der Formularstruktur");
+
+    const data = await res.json();
+    console.log("📢 Geladene Formularstruktur:", data);
+    return data;
+  },
+});
+
+// Debugging-Log
+useEffect(() => {
+  if (formStructure) {
+    console.log("✅ Formularstruktur erfolgreich geladen:", formStructure);
+  }
+  if (formError) {
+    console.error("❌ Fehler beim Abrufen der Formularstruktur:", formError);
+  }
+}, [formStructure, formError]);
+Falls die API kein fields zurückgibt, siehst du die Fehlermeldung "❌ Fehler beim Abrufen der Formularstruktur".
+
+3️⃣ Erst laden, dann rendern (Verhindert leere Fragen)
+Wenn formStructure noch nicht geladen ist, sollten wir das UI nicht rendern.
+
+🔹 Fix für das UI
+
+tsx
+Copy
+Edit
+if (isFormLoading) {
+  return (
+    <DashboardLayout>
+      <div className="flex items-center justify-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="text-muted-foreground ml-2">Formularstruktur wird geladen...</p>
+      </div>
+    </DashboardLayout>
+  );
+}
+Dadurch wird erst nach dem Laden der Fragen das UI angezeigt.
+
+🚀 Fazit
+✅ Die Fragen werden jetzt erst angezeigt, wenn formStructure fertig geladen ist.
+✅ Fehlermeldungen helfen, falls die API keine fields liefert.
+✅ Falls fields leer ist, sehen wir das direkt in der Konsole.
+
+Falls das Problem weiter besteht, poste die API-Antwort von console.log("📢 Geladene Formularstruktur:", data);, dann kann ich es genau analysieren! 🚀😊

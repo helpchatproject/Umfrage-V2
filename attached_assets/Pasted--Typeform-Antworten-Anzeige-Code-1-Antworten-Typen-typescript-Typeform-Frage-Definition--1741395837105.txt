@@ -1,0 +1,120 @@
+# Typeform Antworten Anzeige Code
+
+## 1. Antworten Typen
+```typescript
+// Typeform Frage Definition
+type TypeformQuestion = {
+  id: string;
+  title: string;
+  type: string;
+  ref: string;
+};
+
+// Typeform Antwort Definition
+type TypeformAnswer = {
+  type: string;
+  field: {
+    id: string;
+    type: string;
+    ref: string;
+  };
+  boolean?: boolean;
+  number?: number;
+  choice?: {
+    label: string;
+  };
+};
+```
+
+## 2. React Query Hook für Antworten
+```typescript
+const { data: responses, isLoading } = useQuery<TypeformResponse[]>({
+  queryKey: ["/api/responses"]
+});
+```
+
+## 3. Antworten Anzeige Komponente
+```typescript
+<div className="grid gap-6">
+  {responses?.map((response) => (
+    <Card key={response.id}>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          Antwort #{response.id} - {new Date(response.submittedAt).toLocaleString('de-DE')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {(response.questions as TypeformQuestion[]).map((question, index) => {
+          const answer = (response.answers as TypeformAnswer[]).find(a => a.field.id === question.id);
+          let answerValue = "Keine Antwort";
+
+          if (answer) {
+            if ("boolean" in answer && answer.boolean !== undefined) {
+              answerValue = answer.boolean ? "Ja" : "Nein";
+            } else if ("number" in answer && answer.number !== undefined) {
+              answerValue = answer.number.toString();
+            } else if ("choice" in answer && answer.choice) {
+              answerValue = answer.choice.label;
+            }
+          }
+
+          return (
+            <div key={question.id}>
+              {index > 0 && <Separator className="my-4" />}
+              <div className="space-y-2">
+                <h3 className="font-medium">{question.title}</h3>
+                <p className="text-sm text-muted-foreground">{answerValue}</p>
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  ))}
+
+  {responses?.length === 0 && (
+    <Card>
+      <CardContent className="p-6 text-center text-muted-foreground">
+        Noch keine Antworten. Sobald neue Antworten über den Webhook eingehen, werden sie hier angezeigt.
+      </CardContent>
+    </Card>
+  )}
+</div>
+```
+
+## 4. WebSocket Aktualisierung
+```typescript
+useEffect(() => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const ws = new WebSocket(wsUrl);
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "REFRESH") {
+      // Invalidate and refetch responses
+      queryClient.invalidateQueries({ queryKey: ["/api/responses"] });
+
+      // Show notification
+      toast({
+        title: "Neue Antwort erhalten!",
+        description: "Die Antwortenliste wurde aktualisiert."
+      });
+    }
+  };
+});
+```
+
+## Verwendung:
+1. Diese Komponente zeigt alle empfangenen Typeform-Antworten an
+2. Jede Antwort wird in einer Card angezeigt
+3. Das Datum wird im deutschen Format angezeigt
+4. Verschiedene Antworttypen (Ja/Nein, Zahlen, Auswahlmöglichkeiten) werden korrekt formatiert
+5. WebSocket sorgt für automatische Aktualisierung bei neuen Antworten
+
+## Benötigte Komponenten:
+```typescript
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";

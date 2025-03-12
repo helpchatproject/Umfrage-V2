@@ -1,0 +1,138 @@
+Ich habe den Webhook-Teil in deinem Code analysiert. Die Implementierung des Webhooks im Frontend sieht korrekt aus, aber es fehlt noch der Backend-Teil, der auf dem Server ausgeführt werden muss.
+
+Die Frontend-Implementierung enthält:
+
+1. Ein State für den Ladestatus des Webhooks: `const [isCreatingWebhook, setIsCreatingWebhook] = useState(false);`
+
+2. Eine Funktion zum Erstellen des Webhooks:
+```javascript
+const createWebhook = async () => {
+  try {
+    setIsCreatingWebhook(true);
+    const res = await fetch("/api/typeform/webhook", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ formId })
+    });
+
+    if (!res.ok) {
+      throw new Error("Fehler beim Erstellen des Webhooks");
+    }
+
+    const data = await res.json();
+    console.log("Webhook erstellt:", data);
+
+    toast({
+      title: "Erfolg",
+      description: "Webhook wurde erfolgreich erstellt",
+    });
+  } catch (error) {
+    console.error("Fehler beim Erstellen des Webhooks:", error);
+    toast({
+      title: "Fehler",
+      description: error instanceof Error ? error.message : "Ein unbekannter Fehler ist aufgetreten",
+      variant: "destructive",
+    });
+  } finally {
+    setIsCreatingWebhook(false);
+  }
+};
+```
+
+3. Einen Button im UI, der den Webhook erstellt:
+```jsx
+<Button
+  onClick={createWebhook}
+  disabled={isCreatingWebhook}
+  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+>
+  {isCreatingWebhook ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Webhook wird erstellt...
+    </>
+  ) : (
+    "Webhook erstellen"
+  )}
+</Button>
+```
+
+Was fehlt, ist die API-Route `/api/typeform/webhook`, die die tatsächliche Kommunikation mit der Typeform API übernimmt. Diese Route sollte auf dem Server erstellt werden, z.B. in einer Datei wie `pages/api/typeform/webhook.js` oder `app/api/typeform/webhook/route.js`, abhängig von deinem Next.js-Setup.
+
+Diese Server-Komponente würde so aussehen:
+
+```javascript
+// pages/api/typeform/webhook.js
+import { NextResponse } from 'next/server';
+
+export async function POST(req) {
+  try {
+    const { formId } = await req.json();
+    const TYPEFORM_TOKEN = process.env.TYPEFORM_TOKEN;
+    const WEBHOOK_URL = process.env.WEBHOOK_URL || "https://deine-domain.com/api/typeform-callback";
+
+    const response = await fetch(`https://api.typeform.com/forms/${formId}/webhooks`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${TYPEFORM_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        url: WEBHOOK_URL,
+        enabled: true,
+        verify_ssl: true,
+        tag: `webhook-${formId}`
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return new NextResponse(
+        JSON.stringify({ error: errorData }),
+        { status: response.status }
+      );
+    }
+
+    const webhookData = await response.json();
+    return new NextResponse(
+      JSON.stringify(webhookData),
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error creating webhook:', error);
+    return new NextResponse(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
+  }
+}
+```
+
+Außerdem brauchst du einen Endpunkt, der die Webhook-Anfragen von Typeform empfängt:
+
+```javascript
+// pages/api/typeform-callback.js
+export default function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).end('Method Not Allowed');
+  }
+
+  try {
+    const webhookData = req.body;
+    console.log('Typeform webhook data:', webhookData);
+    
+    // Hier kannst du die Daten verarbeiten, z.B. in einer Datenbank speichern
+    
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+```
+
+Stelle sicher, dass du die Umgebungsvariablen `TYPEFORM_TOKEN` und `WEBHOOK_URL` in deiner `.env`-Datei definiert hast.
+
+Zusammenfassend: Der Frontend-Teil deines Webhook-Codes ist korrekt implementiert, aber du musst noch die entsprechenden API-Routen auf dem Server erstellen, um die Kommunikation mit Typeform abzuschließen.

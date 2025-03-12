@@ -1,0 +1,84 @@
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+✓ 2205 modules transformed.
+../dist/public/index.html                            2.08 kB │ gzip:   0.77 kB
+../dist/public/assets/index-7RkPJpyc.css            61.87 kB │ gzip:  10.89 kB
+../dist/public/assets/purify.es-D-QPbZEk.js         21.82 kB │ gzip:   8.60 kB
+../dist/public/assets/index.es-CJoFjPy_.js         149.85 kB │ gzip:  51.24 kB
+../dist/public/assets/html2canvas.esm-CBrSDip1.js  201.42 kB │ gzip:  48.03 kB
+../dist/public/assets/index-C-XV-l4Q.js            901.99 kB │ gzip: 281.56 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 40.34s
+
+  dist/index.js  45.3kb
+
+⚡ Done in 30ms
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ typeform-webhook   │ fork     │ 0    │ online    │ 0%       │ 80.1mb   │
+│ 1  │ typeform-webhook   │ fork     │ 0    │ online    │ 0%       │ 18.4mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2][WARN] Current process list is not synchronized with saved list. Type 'pm2 save' to synchronize.
+ubuntu@ecs-tms:/var/www/tms.helpchat.care$ pm2 logs typeform-webhook
+[TAILING] Tailing last 15 lines for [typeform-webhook] process (change the value with --lines option)
+/home/ubuntu/.pm2/logs/typeform-webhook-out.log last 15 lines:
+0|typeform | > rest-express@1.0.0 start
+0|typeform | > NODE_ENV=production node dist/index.js production
+0|typeform |
+0|typeform |
+0|typeform | > rest-express@1.0.0 start
+0|typeform | > NODE_ENV=production node dist/index.js production
+0|typeform |
+0|typeform |
+0|typeform | > rest-express@1.0.0 start
+0|typeform | > NODE_ENV=production node dist/index.js
+0|typeform |
+0|typeform |
+0|typeform | > rest-express@1.0.0 start
+0|typeform | > NODE_ENV=production node dist/index.js
+0|typeform |
+
+/home/ubuntu/.pm2/logs/typeform-webhook-error.log last 15 lines:
+0|typeform |     at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+0|typeform |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+0|typeform |
+0|typeform | Node.js v20.18.3
+0|typeform | file:///var/www/tms.helpchat.care/dist/index.js:213
+0|typeform |   throw new Error(
+0|typeform |         ^
+0|typeform |
+0|typeform | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|typeform |     at file:///var/www/tms.helpchat.care/dist/index.js:213:9
+0|typeform |     at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+0|typeform |     at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+0|typeform |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+0|typeform |
+0|typeform | Node.js v20.18.3
+
+1|typeform-webhook  | > rest-express@1.0.0 start
+1|typeform-webhook  | > NODE_ENV=production node dist/index.js
+1|typeform-webhook  | file:///var/www/tms.helpchat.care/dist/index.js:213
+1|typeform-webhook  |   throw new Error(
+1|typeform-webhook  |         ^
+1|typeform-webhook  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+1|typeform-webhook  |     at file:///var/www/tms.helpchat.care/dist/index.js:213:9
+1|typeform-webhook  |     at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+1|typeform-webhook  |     at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+1|typeform-webhook  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+1|typeform-webhook  | Node.js v20.18.3
+1|typeform-webhook  | > rest-express@1.0.0 start
+1|typeform-webhook  | > NODE_ENV=production node dist/index.js

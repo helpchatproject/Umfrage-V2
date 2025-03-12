@@ -1,0 +1,56 @@
+Der Grund, warum im Dashboard unter "Letzter Webhook Response (Debug)" der gesamte Payload angezeigt wird, anstatt nur die Typeform-Fragen und Antworten, könnte an folgendem liegen:
+
+### **Analyse des Codes**
+#### **1️⃣ Webhook-Handler (t2.py)**
+- Der Webhook-Handler empfängt die Daten und versucht, die relevanten Informationen zu extrahieren.
+- Die Extraktion der Fragen und Antworten basiert auf `data["form_response"]["definition"]["fields"]` für Fragen und `data["form_response"]["answers"]` für Antworten.
+- Falls `data["form_response"]` nicht gefunden wird, gibt das Skript eine Fehlermeldung aus.
+
+#### **2️⃣ API-Datenabruf (t.py)**
+- Dieses Skript ruft die Antworten direkt über die Typeform API ab.
+- Die Antworten werden in einem Pandas DataFrame gespeichert und im Terminal ausgegeben.
+
+---
+
+### **Mögliche Ursachen für das Problem**
+1. **Webhook empfängt vollständige Daten, verarbeitet sie aber nicht korrekt**
+   - Falls `form_response` nicht extrahiert wird, wird der gesamte Payload ausgegeben.
+   - Debugging-Zeile `print("\n🔍 Vollständige JSON-Daten erhalten:")` könnte fälschlicherweise als Ausgabe verwendet werden.
+
+2. **Falscher Zugriff auf Fragen und Antworten**
+   - `questions = {field["id"]: field["title"] for field in form_response["definition"]["fields"]}` könnte fehlschlagen, falls `definition` nicht korrekt formatiert ist.
+   - Falls `answers` leer ist oder nicht die erwartete Struktur hat, werden möglicherweise keine Antworten extrahiert.
+
+3. **Typeform API hat leere oder inkonsistente Daten**
+   - Falls die API-Antwort keine `items` oder `answers` enthält, gibt das Skript keine Antworten zurück.
+
+---
+
+### **Lösungsvorschläge**
+✅ **Debugging verbessern:**
+- Füge vor der Verarbeitung eine Debugging-Zeile hinzu:
+  ```python
+  print("\n📥 Erhaltener form_response Inhalt:")
+  print(json.dumps(form_response, indent=2, ensure_ascii=False))
+  ```
+  So kann überprüft werden, ob die Struktur korrekt ist.
+
+✅ **Prüfung auf fehlende Antworten verbessern:**
+- Stelle sicher, dass `answers` nicht `None` oder leer ist:
+  ```python
+  if not answers:
+      print("⚠️ Keine Antworten im form_response enthalten!")
+      return
+  ```
+
+✅ **Verwende Try-Except für JSON-Parsing:**
+- Falls JSON fehlerhaft ist, bricht das Skript nicht ab:
+  ```python
+  try:
+      data = json.loads(post_data)
+  except json.JSONDecodeError:
+      print("❌ Fehler: JSON-Dekodierung fehlgeschlagen")
+      return
+  ```
+
+Falls du möchtest, dass ich den Code für dich korrigiere, sag mir Bescheid! 🚀

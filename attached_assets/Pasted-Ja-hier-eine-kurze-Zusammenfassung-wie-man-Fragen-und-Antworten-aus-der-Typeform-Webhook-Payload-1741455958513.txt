@@ -1,0 +1,68 @@
+Ja, hier eine kurze Zusammenfassung, wie man Fragen und Antworten aus der **Typeform Webhook-Payload** extrahiert:
+
+### **1. Struktur der JSON-Payload**
+Die Webhook-Payload von Typeform enthält zwei wichtige Abschnitte:
+- **`form_response.definition.fields`** → Enthält die Liste aller Fragen mit einer `id`, `title` (Fragetext) und `ref` (Referenz).
+- **`form_response.answers`** → Enthält die Liste der Antworten, wobei jede Antwort einer `field.id` zugeordnet ist.
+
+### **2. Extraktion von Fragen und Antworten**
+1. **Alle Fragen abrufen**  
+   - Durchsuche `definition.fields` und speichere `id` als Schlüssel und `title` als Wert.
+
+2. **Antworten mit Fragen verknüpfen**  
+   - Iteriere über `answers` und verwende `field.id`, um die entsprechende Frage aus `fields` zu finden.
+   - Extrahiere den Antwortwert aus `answers` basierend auf dem Typ (`text`, `boolean`, `choice`, etc.).
+
+### **3. Beispiel für JSON-Payload**
+```json
+{
+  "form_response": {
+    "definition": {
+      "fields": [
+        { "id": "Q1", "title": "Wie heißt du?" },
+        { "id": "Q2", "title": "Wie alt bist du?" }
+      ]
+    },
+    "answers": [
+      { "field": { "id": "Q1" }, "text": "Max Mustermann" },
+      { "field": { "id": "Q2" }, "number": 25 }
+    ]
+  }
+}
+```
+
+### **4. Ergebnis nach Verarbeitung**
+| Frage                 | Antwort         |
+|-----------------------|---------------|
+| Wie heißt du?        | Max Mustermann |
+| Wie alt bist du?     | 25            |
+
+### **5. Code zur Extraktion (Python)**
+```python
+import json
+
+# JSON-Daten (Beispiel)
+data = json.loads(json_string)
+
+# Fragen extrahieren
+questions = {q["id"]: q["title"] for q in data["form_response"]["definition"]["fields"]}
+
+# Antworten zuordnen
+responses = {}
+for answer in data["form_response"]["answers"]:
+    question_id = answer["field"]["id"]
+    value = next(iter(answer.values()))  # Wert automatisch erkennen
+    responses[questions[question_id]] = value
+
+print(responses)
+```
+
+**Ergebnis:**  
+```json
+{
+  "Wie heißt du?": "Max Mustermann",
+  "Wie alt bist du?": 25
+}
+```
+
+➡️ **Mit diesem Ansatz kann ein KI-Tool Fragen und Antworten aus einer Typeform-Payload extrahieren.**

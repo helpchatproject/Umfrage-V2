@@ -1,0 +1,114 @@
+Um in der Typeform API die Titel von Matrix-Fragen zu finden, müssen wir die Struktur der API-Antwort für diesen speziellen Fragetyp verstehen.
+
+Matrix-Fragen werden in Typeform als `matrix` Fragetyp behandelt. In der API-Antwort haben sie folgende Besonderheiten:
+
+1. Im `fields`-Array gibt es ein Feld mit dem Typ `"matrix"`
+2. Dieses Feld enthält zusätzliche Informationen in den `properties`:
+   - `fields`: Enthält die Zeilen der Matrix
+   - `superfields`: Enthält die Spalten der Matrix
+
+Hier ist ein Beispiel, wie ein Matrix-Feld in der API strukturiert sein könnte:
+
+```json
+{
+  "id": "matrix_question_id",
+  "ref": "matrix_question_ref",
+  "type": "matrix",
+  "title": "Matrixfrage Haupttitel",
+  "properties": {
+    "fields": [
+      {
+        "id": "row_1_id",
+        "title": "Zeile 1 Titel",
+        "ref": "row_1_ref"
+      },
+      {
+        "id": "row_2_id",
+        "title": "Zeile 2 Titel",
+        "ref": "row_2_ref"
+      }
+    ],
+    "superfields": [
+      {
+        "id": "column_1_id",
+        "title": "Spalte 1 Titel",
+        "ref": "column_1_ref"
+      },
+      {
+        "id": "column_2_id",
+        "title": "Spalte 2 Titel",
+        "ref": "column_2_ref"
+      }
+    ]
+  }
+}
+```
+
+Die Antworten für Matrix-Fragen erscheinen im `answers`-Array als separate Einträge, die auf die jeweiligen Zeilen und Spalten verweisen:
+
+```json
+{
+  "type": "matrix",
+  "matrix": {
+    "row": {
+      "id": "row_1_id",
+      "ref": "row_1_ref"
+    },
+    "column": {
+      "id": "column_2_id",
+      "ref": "column_2_ref"
+    }
+  },
+  "field": {
+    "id": "matrix_question_id",
+    "type": "matrix",
+    "ref": "matrix_question_ref"
+  }
+}
+```
+
+Um den Titel einer Matrix-Frage zu finden, musst du folgende Schritte implementieren:
+
+```javascript
+function findMatrixQuestionText(answer, fields) {
+  // 1. Finde das Haupt-Matrix-Feld
+  const matrixField = fields.find(f => 
+    f.id === answer.field.id || f.ref === answer.field.ref
+  );
+  
+  if (!matrixField) return "Unbekannte Matrix-Frage";
+  
+  // 2. Finde den Zeilen-Titel
+  const rowTitle = matrixField.properties.fields.find(row =>
+    row.id === answer.matrix.row.id || row.ref === answer.matrix.row.ref
+  )?.title || "Unbekannte Zeile";
+  
+  // 3. Finde den Spalten-Titel
+  const columnTitle = matrixField.properties.superfields.find(col =>
+    col.id === answer.matrix.column.id || col.ref === answer.matrix.column.ref
+  )?.title || "Unbekannte Spalte";
+  
+  // 4. Kombiniere für den vollständigen Fragetext
+  return `${matrixField.title}: ${rowTitle} - ${columnTitle}`;
+}
+```
+
+Du müsstest die `findQuestionText`-Funktion in deinem Code anpassen, um diesen speziellen Fall zu behandeln:
+
+```javascript
+const findQuestionText = (answer, fields) => {
+  // Wenn es eine Matrix-Frage ist
+  if (answer.type === "matrix" && answer.matrix) {
+    return findMatrixQuestionText(answer, fields);
+  }
+  
+  // Für andere Fragetypen - bestehende Logik
+  const questionField = fields.find(f => 
+    f.id === answer.field.id || f.ref === answer.field.ref
+  );
+  
+  return questionField?.title || `Frage ${answer.field.id || answer.field.ref}`;
+};
+```
+
+Dies sollte es dir ermöglichen, sowohl die Hauptüberschrift der Matrix-Frage als auch die spezifischen Zeilen- und Spaltenbeschriftungen zu finden und anzuzeigen.

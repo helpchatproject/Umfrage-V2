@@ -1,0 +1,87 @@
+Payload
+{
+  "event_id": "01JNSJ903T74Y47AKBXZMT1RYH",
+  "event_type": "form_response",
+  "form_response": {
+    "form_id": "xiGccMaw",
+    "token": "wnejefcefhe3ph9n0wnengryk9y7c1wx",
+    "landed_at": "2025-03-08T00:25:18Z",
+    "submitted_at": "2025-03-08T00:25:26Z",
+    "definition": {
+      "id": "xiGccMaw",
+      "title": "Test",
+      "fields": [
+        {
+          "id": "pnNbnPQ3aKLF",
+          "ref": "dda4e404-cf5a-4d7c-bc5a-fa33a4a7d735",
+          "type": "short_text",
+          "title": "...",
+          "properties": {}
+        },
+        {
+          "id": "Pr4chPCtThnh",
+          "ref": "8770be9b-a99d-4f95-99b6-0300177a4a5a",
+          "type": "multiple_choice",
+          "title": "...",
+          "properties": {},
+          "choices": [
+            {
+              "id": "fCPZsvQeS8gB",
+              "ref": "79a12e69-6d6f-4153-977e-6196a0536ba8",
+              "label": "1"
+            },
+            {
+              "id": "1vlDGUSGOmJp",
+              "ref": "c1819bfc-d434-4dcd-99e7-5771668bd2b1",
+              "label": "2"
+            },
+            {
+              "id": "8J9rn8j1fy0Z",
+              "ref": "c125a0fa-e4b9-402b-b621-74517102a38d",
+              "label": "3"
+            }
+          ]
+        }
+      ],
+      "endings": [
+        {
+          "id": "wvvm8a7vgoyA",
+          "ref": "dc666781-8dbe-4f10-b10a-0cb34e01f8c0",
+          "title": "_paren5",
+          "type": "url_redirect",
+          "properties": {
+            "redirect_url": "https://test.helpchat.care/de/user/services"
+          }
+        }
+      ]
+    },
+    "answers": [
+      {
+        "type": "text",
+        "text": "hhhhh",
+        "field": {
+          "id": "pnNbnPQ3aKLF",
+          "type": "short_text",
+          "ref": "dda4e404-cf5a-4d7c-bc5a-fa33a4a7d735"
+        }
+      },
+      {
+        "type": "choice",
+        "choice": {
+          "id": "8J9rn8j1fy0Z",
+          "label": "3",
+          "ref": "c125a0fa-e4b9-402b-b621-74517102a38d"
+        },
+        "field": {
+          "id": "Pr4chPCtThnh",
+          "type": "multiple_choice",
+          "ref": "8770be9b-a99d-4f95-99b6-0300177a4a5a"
+        }
+      }
+    ],
+    "ending": {
+      "id": "wvvm8a7vgoyA",
+      "ref": "dc666781-8dbe-4f10-b10a-0cb34e01f8c0"
+    }
+  }
+}

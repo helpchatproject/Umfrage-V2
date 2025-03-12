@@ -1,0 +1,41 @@
+Der Unterschied in der Struktur deiner Daten kommt wahrscheinlich daher, dass du zwei verschiedene Systeme betrachtest:
+
+Webhook-Payload von Typeform (die Daten, die von Typeform gesendet werden)
+WebSocket-Nachricht in der Webseite-Konsole (die Daten, die dein System verarbeitet und über WebSocket weiterleitet)
+Mögliche Ursachen für die Unterschiede:
+Unterschiedliche Einbettungsebene:
+
+In der Webhook-Payload ist das form_response-Objekt direkt auf oberster Ebene des JSON enthalten.
+In der WebSocket-Nachricht ist form_response in einem zusätzlichen Wrapper-Objekt (responseData) verschachtelt.
+Fehlendes event_type in der WebSocket-Nachricht:
+
+Die Webhook-Payload enthält "event_type": "form_response", während die WebSocket-Nachricht diesen Key nicht enthält.
+Möglicherweise filtert oder transformiert dein Backend die Daten, bevor es sie über WebSocket sendet.
+event_id fehlt in der WebSocket-Nachricht:
+
+Das event_id-Feld existiert in der Webhook-Payload, aber nicht in der WebSocket-Nachricht.
+Dein System könnte das event_id entfernen oder es wird einfach nicht benötigt.
+webhookId in der WebSocket-Nachricht:
+
+In der WebSocket-Nachricht gibt es ein Feld "webhookId": 2, das in der Webhook-Payload nicht vorkommt.
+Das könnte ein interner Identifier sein, den dein System hinzufügt.
+Unterschiedliche token-Werte:
+
+"token": "wnejefcefhe3ph9n0wnengryk9y7c1wx" (Webhook)
+"token": "mik2flagoxbhgg722bzw7umik235sgqd" (WebSocket)
+Das könnte bedeuten, dass verschiedene Formulareinsendungen verarbeitet werden oder das Token im Backend ersetzt wird.
+Gleiche form_id, answers und definition:
+
+Die Kerninformationen über das Formular und die Antworten sind identisch, was zeigt, dass der Inhalt nicht verloren geht.
+Der Unterschied betrifft nur die Metadaten und die Struktur.
+Mögliche Gründe für die Unterschiede:
+Dein Backend könnte eine eigene Verarbeitung der Webhook-Daten durchführen, bevor sie über WebSocket gesendet werden.
+WebSockets könnten zusätzliche Metadaten hinzufügen oder einige entfernen.
+Es könnte eine Middleware geben, die den Payload vor dem Versand über WebSocket transformiert.
+Lösung / Debugging-Vorschlag:
+Falls du sicherstellen möchtest, dass beide Datenstrukturen identisch bleiben, prüfe:
+
+Den Code, der den Webhook empfängt – wird der Payload vor der Verarbeitung verändert?
+Den Code, der WebSocket-Nachrichten sendet – gibt es eine Anpassung der Datenstruktur?
+Logge den originalen Webhook-Payload vor der Weiterleitung an WebSocket, um Unterschiede zu identifizieren.
+Falls dein System bestimmte Metadaten entfernt oder neu strukturiert, kannst du es so anpassen, dass es die Struktur des Typeform-Webhooks beibehält, falls das für deine Anwendung erforderlich ist.

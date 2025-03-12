@@ -1,0 +1,165 @@
+import express from "express";
+import { z } from "zod";
+
+const app = express();
+app.use(express.json());
+
+// HTML Template
+const htmlTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Typeform Structure Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { background: #0066ff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background: #0052cc; }
+        .error { color: red; }
+        .question { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .loading { display: none; }
+    </style>
+    <script>
+        async function loadForm() {
+            const apiToken = document.getElementById('apiToken').value;
+            const formId = document.getElementById('formId').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+
+            loadingDiv.style.display = 'block';
+            errorDiv.textContent = '';
+            resultDiv.innerHTML = '';
+
+            try {
+                // Validate credentials
+                const validateResponse = await fetch('/api/typeform/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiToken, formId })
+                });
+
+                if (!validateResponse.ok) {
+                    throw new Error('Invalid credentials');
+                }
+
+                // Get form structure
+                const formResponse = await fetch(\`/api/typeform/form/\${formId}\`, {
+                    headers: { 'Authorization': \`Bearer \${apiToken}\` }
+                });
+
+                if (!formResponse.ok) {
+                    throw new Error('Failed to fetch form data');
+                }
+
+                const formData = await formResponse.json();
+
+                // Display form structure
+                let html = \`<h2>\${formData.title || 'Untitled Form'}</h2>\`;
+                if (formData.fields) {
+                    formData.fields.forEach((field, index) => {
+                        html += \`
+                            <div class="question">
+                                <strong>\${index + 1}. \${field.title || 'Untitled Question'}</strong>
+                                <p>Type: \${field.type}</p>
+                                \${field.properties?.description ? \`<p>Description: \${field.properties.description}</p>\` : ''}
+                            </div>
+                        \`;
+                    });
+                }
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                errorDiv.textContent = error.message;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Typeform Structure Viewer</h1>
+    <div class="form-group">
+        <label for="apiToken">API Token:</label>
+        <input type="password" id="apiToken" placeholder="Enter your Typeform API token">
+    </div>
+    <div class="form-group">
+        <label for="formId">Form ID:</label>
+        <input type="text" id="formId" placeholder="Enter your form ID">
+    </div>
+    <button onclick="loadForm()">Load Form Structure</button>
+    <div id="error" class="error"></div>
+    <div id="loading" class="loading">Loading...</div>
+    <div id="result"></div>
+</body>
+</html>
+`;
+
+// Serve the HTML page
+app.get("/", (_req, res) => {
+    res.send(htmlTemplate);
+});
+
+// Validate Typeform credentials
+app.post("/api/typeform/validate", async (req, res) => {
+    const { apiToken, formId } = req.body;
+
+    try {
+        const response = await fetch(`https://api.typeform.com/forms/${formId}`, {
+            headers: {
+                'Authorization': `Bearer ${apiToken}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch form: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        res.status(400).json({ 
+            message: error instanceof Error ? error.message : "Failed to validate Typeform credentials" 
+        });
+    }
+});
+
+// Get form structure
+app.get("/api/typeform/form/:formId", async (req, res) => {
+    const { formId } = req.params;
+    const apiToken = req.headers.authorization?.split(" ")[1];
+
+    if (!apiToken) {
+        return res.status(401).json({ message: "API token is required" });
+    }
+
+    try {
+        const response = await fetch(`https://api.typeform.com/forms/${formId}`, {
+            headers: {
+                'Authorization': `Bearer ${apiToken}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch form: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        res.status(400).json({ 
+            message: error instanceof Error ? error.message : "Failed to fetch form data" 
+        });
+    }
+});
+
+// Start server
+const port = 5000;
+app.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+}, () => {
+    console.log(`Server running on port ${port}`);
+});

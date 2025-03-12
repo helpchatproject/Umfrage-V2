@@ -1,0 +1,183 @@
+import { useQuery } from "@tanstack/react-query";
+import DashboardLayout from "@/components/layouts/dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Eye } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useState } from "react";
+
+export default function ApiTest() {
+  const [selectedResponse, setSelectedResponse] = useState(null);
+  const formId = "Y3Z308AH"; // Deine Typeform Form ID
+
+  // API Fetch-Funktion
+  const fetchResponses = async () => {
+    const res = await fetch(`/api/typeform/forms/${formId}/responses`);
+    if (!res.ok) throw new Error("Fehler beim Laden der Antworten");
+    return res.json();
+  };
+
+  const { data: response, isLoading, isFetching, error } = useQuery({
+    queryKey: [`/api/typeform/forms/${formId}/responses`],
+    queryFn: fetchResponses,
+    select: (data) => {
+      console.log("Raw API Response:", JSON.stringify(data, null, 2));
+      return Array.isArray(data) ? data[0] : data;
+    },
+  });
+
+  if (isLoading || isFetching) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[200px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">API Test</h2>
+          <p className="text-red-500">Fehler beim Laden der Daten: {error.message}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!response) {
+    return (
+      <DashboardLayout>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">API Test</h2>
+          <p className="text-muted-foreground">Keine Daten verfügbar</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Hilfsfunktion zum Formatieren der Antworten
+  const formatAnswer = (answer) => {
+    if (!answer) return "Keine Antwort";
+
+    switch (answer.type) {
+      case "text":
+        return answer.text;
+      case "choice":
+        return answer.choice?.label?.replace(/\*/g, "") || "Keine Auswahl";
+      case "choices":
+        return answer.choices?.labels?.join(", ");
+      case "number":
+        return answer.number?.toString();
+      case "boolean":
+        return answer.boolean ? "Ja" : "Nein";
+      case "email":
+        return answer.email;
+      default:
+        return "Keine Antwort";
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">API Test</h2>
+          <p className="text-muted-foreground">
+            Test der Typeform API mit Form ID: {formId}
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Formular Antworten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Response ID</TableHead>
+                  <TableHead>Eingereicht am</TableHead>
+                  <TableHead>Aktionen</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    {response?.response_id || "Keine ID"}
+                  </TableCell>
+                  <TableCell>
+                    {response?.submitted_at
+                      ? new Date(response.submitted_at).toLocaleString("de-DE")
+                      : "Kein Datum"}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log("Setting selected response:", response);
+                        setSelectedResponse(response);
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Dialog für Fragen & Antworten */}
+      <Dialog open={!!selectedResponse} onOpenChange={() => setSelectedResponse(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Fragen und Antworten</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Frage</TableHead>
+                  <TableHead>Antwort</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedResponse?.answers?.map((answer) => {
+                  // Find the matching question title from definition.fields
+                  const questionField = selectedResponse?.definition?.fields?.find(
+                    (field) => field.id === answer.field.id
+                  ) || {};
+                  
+                  // Log für Debugging
+                  console.log("Field ID:", answer.field.id);
+                  console.log("Question Field:", questionField);
+                  
+                  return (
+                    <TableRow key={answer.field.id}>
+                      <TableCell>{questionField.title || "Unbekannte Frage"}</TableCell>
+                      <TableCell>{formatAnswer(answer)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
+  );
+}
